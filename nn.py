@@ -14,17 +14,29 @@ def sigmoid(x):
 def sigmoid_deriv(x):
     return sigmoid(x) * (1 - sigmoid(x))
 
+def direct(x):
+    return x
 
 
 class NN:
-    def __init__(self, layers, activation_fn="tanh"): # [1, 10, 1]
+    def __init__(self, layers, activation_fns): # [1, 10, 1]
 
-        if activation_fn == "tanh":
-            self.activation = tanh
-            self.activation_deriv = tanh_deriv
-        elif activation_fn == "sigmoid":
-            self.activation = sigmoid
-            self.activation_deriv = sigmoid
+        self.activations = []
+        self.activations_deriv = []
+
+        for activation_fn in activation_fns:
+
+            if activation_fn == "tanh":
+                self.activations.append(tanh)
+                self.activations_deriv.append(tanh_deriv)
+
+            elif activation_fn == "sigmoid":
+                self.activations.append(sigmoid)
+                self.activations_deriv.append(sigmoid_deriv)
+
+            elif activation_fn is None:
+                self.activations.append(direct)
+                self.activations_deriv.append(direct)
         
         self.layers = layers
 
@@ -41,8 +53,13 @@ class NN:
 
     def forward(self, x):
         outputs = [x]
-        for l, weight in enumerate(self.weights):
-            outputs.append(np.matmul(outputs[l], weight)) # outputs[l]: [batch_size, xx]
+        for i, weight in enumerate(self.weights):
+            if self.activations[i] is not None:
+                outputs.append(self.activations[i](np.matmul(outputs[i], weight))) # outputs[i]: [batch_size, xx]
+
+            else:
+                outputs.append(np.matmul(outputs[i], weight)) # outputs[i]: [batch_size, xx]
+
         return outputs
 
     def backward(self, outputs, y): # y is the label
@@ -55,12 +72,12 @@ class NN:
             # calc errors from back to front
             # calc the errors in the last layer
             errors = []
-            #errors.append(self.activation_deriv(outputs[-1][ins]) * self.loss(outputs[-1][ins], y[ins]))
-            errors.append(self.activation_deriv(outputs[-1][ins]) * (y[ins] - outputs[-1][ins]))
+            errors.append(self.activations_deriv[-1](outputs[-1][ins]) * self.loss(outputs[-1][ins], y[ins]))
+            #errors.append(self.activation_deriv(outputs[-1][ins]) * (y[ins] - outputs[-1][ins]))
             #errors.append(self.activation_deriv(outputs[-1][ins]) * (y[ins] - outputs[-1][ins]))
 
             for l, weight in enumerate(reversed(self.weights)):
-                errors.append(self.activation_deriv(outputs[-(l + 2)][ins]) * np.matmul(weight, errors[l])) 
+                errors.append(self.activations_deriv[-(l + 2)](outputs[-(l + 2)][ins]) * np.matmul(weight, errors[l])) 
             errors = list(reversed(errors))
 
             # calc the delta
@@ -80,7 +97,7 @@ class NN:
 
 
 
-    def fit(self, x, y, num_epochs, learning_rate=0.1):
+    def fit(self, x, y, num_epochs, learning_rate=0.5):
 
         self.learning_rate = learning_rate
 
@@ -96,11 +113,11 @@ class NN:
             
         
 def train():
-    batch_size = 1000
-    x = np.vstack(np.linspace(-5, 5, batch_size))
+    batch_size = 64
+    x = np.vstack(np.linspace(-1, 1, batch_size))
     y = x ** 2 + 1 + np.random.random([batch_size, 1])
 
-    model = NN([1, 30, 1])
+    model = NN([1, 30, 1], [None, "tanh", None])
     model.fit(x, y, num_epochs=100000)
 
 train()
