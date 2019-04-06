@@ -1,12 +1,6 @@
 import numpy as np
+from utils import *
 
-#def softmax(input):
-#    down = np.sum([np.exp(i) for i in input])
-#    return np.array([np.exp(i) / down for i in input])
-
-def softmax(x):
-    e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum(axis=0)
 
 def rnn_cell_forward(xt, a_prev, parameters):
     Wax = parameters['Wax']
