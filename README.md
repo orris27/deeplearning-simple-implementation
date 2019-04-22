@@ -1,6 +1,8 @@
 ## 1. Python
 + [python-tutorial](https://github.com/shibing624/python-tutorial): python教程，包括：python基础、python进阶；常用机器学习库：numpy、scipy、sklearn、xgboost；深度学习库：keras、tensorflow、paddle、pytorch。
 
++ [python-data-science-cheatsheet](https://github.com/jaystone776/python-data-science-cheatsheet): 14张速查表，带你玩转 Python 数据科学
+
 
 ## 2. Machine Learning
 
