@@ -8,7 +8,12 @@
 
 
 
-## Link
-### CV
-### NLP
+## 1. Machine Learning
+
+## 2. Deep Learning
+
+## 3. Computer Vision
+
+## 4. NLP
+### Text Classification
 + [新闻上的文本分类：机器学习大乱斗 2017.05.05](https://github.com/wavewangyue/text-classification)
