@@ -1,19 +1,27 @@
-该项目内实现了常见的机器学习的算法或网络结构。不同的网络结构分别放在不同的目录下，每个网络结构可能有多种实现方式，包括不利用任何框架或者TensorFlow、PyTorch等。jupyter notebook文件可以直接使用。)(
-
-## dataset
-数据集统一放在`data/`目录下。
-
-## filename
-文件命名格式为`task_dataset_framework.py`。
-
-
-
 ## 1. Machine Learning
 
+### notes
++ [Machine-learning-learning-notes](https://github.com/Vay-keen/Machine-learning-learning-notes)
+
+### 代码实现
+
++ [lihang_book_algorithm](https://github.com/WenDesi/lihang_book_algorithm)
+
 ## 2. Deep Learning
+
+### books
++ [deeplearningbook-chinese](https://github.com/exacity/deeplearningbook-chinese)
 
 ## 3. Computer Vision
 
 ## 4. NLP
+### NLTK
++ [Hands-On NLTK Tutorial](https://github.com/hb20007/hands-on-nltk-tutorial)
+
+
 ### Text Classification
 + [新闻上的文本分类：机器学习大乱斗 2017.05.05](https://github.com/wavewangyue/text-classification)
+
+
+## 5. 综合
++ [机器学习资源 Machine learning Resources](https://github.com/allmachinelearning/MachineLearning)
