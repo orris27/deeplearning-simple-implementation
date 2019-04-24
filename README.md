@@ -23,6 +23,9 @@
 + [deep_learning_notes](https://github.com/huaxz1986/deep_learning_notes): deeplearningbook学习笔记，来自于 http://www.deeplearningbook.org
 
 
++ [cvpr2019](https://github.com/extreme-assistant/cvpr2019): cvpr2019（Papers/Codes/Project/Paper reading）
+
+
 
 
 ## 4. Computer Vision
