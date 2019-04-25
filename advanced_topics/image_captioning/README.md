@@ -6,6 +6,9 @@ cd coco/PythonAPI/
 make
 python setup.py build
 python setup.py install
+
+chmod +x download.sh
+./download.sh
 ```
 
 2. Preprocess data
