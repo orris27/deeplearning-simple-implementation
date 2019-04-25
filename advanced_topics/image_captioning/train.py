@@ -67,15 +67,13 @@ def train():
             loss = loss_fn(y_predicted, targets)
             
             optimizer.zero_grad()
-            #decoder.zero_grad()
-            #encoder.zero_grad()
             loss.backward()
             optimizer.step()
 
             if index % log_every  == 0:
                 print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'.format(epoch, num_epochs, index, num_steps, loss.item(), np.exp(loss.item()))) 
     
-            if index % save_every == 0:
+            if index % save_every == 0 and index != 0:
                 print('Start saving encoder')
                 torch.save(encoder.state_dict(), encoder_path)
                 print('Start saving decoder')

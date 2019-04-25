@@ -11,7 +11,7 @@ from pycocotools.coco import COCO
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
-from load_data import get_loader
+from dataloader import get_loader
 from model import Encoder, Decoder
 
 
