@@ -27,6 +27,7 @@
 
 + [pytorch-tutorial](https://github.com/yunjey/pytorch-tutorial): PyTorch Tutorial for Deep Learning Researchers
 
++ [pytorch tutorial](https://pytorch.org/tutorials/): official website 
 
 ## 4. Computer Vision
 
