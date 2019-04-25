@@ -77,6 +77,6 @@ def sample(img_path):
     
     
     
-sample('data/plane.jpg')
+sample('data/surf.jpg')
 sample('data/example.png')
 
