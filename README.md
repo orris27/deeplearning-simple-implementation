@@ -25,7 +25,7 @@
 
 + [cvpr2019](https://github.com/extreme-assistant/cvpr2019): cvpr2019（Papers/Codes/Project/Paper reading）
 
-
++ [pytorch-tutorial](https://github.com/yunjey/pytorch-tutorial): PyTorch Tutorial for Deep Learning Researchers
 
 
 ## 4. Computer Vision
