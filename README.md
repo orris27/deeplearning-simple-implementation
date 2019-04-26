@@ -29,6 +29,8 @@
 
 + [pytorch tutorial](https://pytorch.org/tutorials/): official website 
 
++ [a-PyTorch-Tutorial-to-Image-Captioning](https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Image-Captioning): a PyTorch Tutorial to Image Captioning.
+
 ## 4. Computer Vision
 
 + [pcv-book-code](https://github.com/willard-yuan/pcv-book-code): Python计算机视觉中译本实例代码
