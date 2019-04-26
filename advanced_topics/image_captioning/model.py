@@ -10,13 +10,6 @@ class Encoder(torch.nn.Module):
         self.resnet = resnet152(pretrained=True)
         del self.resnet.fc
         self.resnet.fc = lambda x: x
-
-#        resnet = resnet152(pretrained=True)
-#        modules = list(resnet.children())[:-1]
-#        self.resnet = nn.Sequential(*modules)
-
-
-        #self.fc = nn.Linear(self.resnet.fc.in_features, embedding_size)
         self.fc = nn.Linear(2048, embedding_size)
         
         self.bn = nn.BatchNorm1d(embedding_size, momentum=0.01)
@@ -24,7 +17,6 @@ class Encoder(torch.nn.Module):
     def forward(self, imgs):
         with torch.no_grad():
             features = self.resnet(imgs)
-#        features = features.reshape(features.size(0), -1)
         features = self.fc(features)
         features = self.bn(features)
         return features
@@ -44,7 +36,6 @@ class Decoder(torch.nn.Module):
     def forward(self, features, captions, lengths):
         embeddings = self.embeddings(captions)
         vec = torch.cat((features.unsqueeze(1), embeddings), 1)
-        #embeddings = torch.cat((features.unsqueeze(1), embeddings), 1)
         vec = pack_padded_sequence(vec, lengths, batch_first=True) # 1st param is vec!!! not embeddings!!!
         hiddens, states = self.rnn(vec)
         outputs = self.classifier(hiddens[0]) # [0] to unpack
@@ -62,8 +53,3 @@ class Decoder(torch.nn.Module):
             inputs = self.embeddings(pred).unsqueeze(1)
         captions = torch.stack(captions, 1)
         return captions
-            
-
-            
-            
-
