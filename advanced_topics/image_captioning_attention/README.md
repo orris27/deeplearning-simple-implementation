@@ -25,3 +25,15 @@ python train.py
 ```
 python sample.py
 ```
+
+## Inference
+![giraffe](./data/giraffe.png)
+
+a giraffe standing in a field next to a tree .
+
+![surf](./data/surf.jpg)
+
+a man riding a wave on top of a surfboard .
+
+## Reference
+[a-PyTorch-Tutorial-to-Image-Captioning](https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Image-Captioning)
