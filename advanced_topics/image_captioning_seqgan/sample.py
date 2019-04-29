@@ -1,18 +1,16 @@
 import torch
-import torchvision.transforms as transforms
 import torch.utils.data as data
 import os
 import pickle
 import numpy as np
 import nltk
-from PIL import Image
 from build_vocab import Vocabulary
 from pycocotools.coco import COCO
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
 from dataloader import get_loader
-from model import Encoder, Decoder
+from generator import Generator
 
 image_dir = 'data/resized2014'
 caption_path = 'data/annotations/captions_train2014.json'
@@ -34,42 +32,6 @@ fine_tune_encoder = False
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def sample(img_path, vocab, dataloader, encoder, decoder):
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406),
-                             (0.229, 0.224, 0.225))])
-    img = Image.open(img_path)
-    imgs = transform(img).to(device).unsqueeze(0)
-
-    all_captions = False
-
-    with torch.no_grad(): # Avoid accumulating gradients which might result in out of memory
-        features = encoder(imgs)
-        #captions = decoder.generate(features, vocab.word2idx['<sos>']) 
-        captions = decoder.generate_beamsearch(features, vocab.word2idx['<sos>'], vocab.word2idx['<eos>'], all_captions=all_captions) # If all_captions is True, then the output contains beam_size numbers of captions
-    
-
-    def translate(indices):
-        sentences = list()
-        for index in indices:
-            word = vocab.idx2word[int(index)]
-            if word == '<eos>':
-                break
-            sentences.append(word)
-        return ' '.join(sentences)
-    
-    
-    if all_captions:
-        for caption in captions:
-            sentence = translate(caption)
-            print(sentence)
-    else:
-        print(translate(captions))
-
-
-
-
 with open(vocab_path, 'rb') as f:
     vocab = pickle.load(f)
 
@@ -81,16 +43,37 @@ dataloader = get_loader(image_dir, caption_path, vocab,
                         crop_size,
                         shuffle=True, num_workers=num_workers)
 
-encoder = Encoder().to(device)
-encoder.fine_tune(fine_tune_encoder)
-decoder = Decoder(attention_dim, embedding_size, lstm_size, vocab_size).to(device)
-
-print('Start loading models.')
-encoder.load_state_dict(torch.load(encoder_path))
-decoder.load_state_dict(torch.load(decoder_path))
-encoder.eval()
-decoder.eval()
-
    
-sample('data/surf.jpg', vocab, dataloader, encoder, decoder)
-sample('data/giraffe.png', vocab, dataloader, encoder, decoder)
+generator = Generator(attention_dim, embedding_size, lstm_size, vocab_size)
+generator = generator.to(device)
+generator = generator.eval()
+
+
+import torchvision.transforms as T
+from PIL import Image
+transforms = T.Compose([
+                T.ToTensor(),
+                T.Normalize((0.485, 0.456, 0.406),
+                            (0.229, 0.224, 0.225))])
+img1 = Image.open('data/surf.jpg')
+img1 = transforms(img1).to(device)
+feature1 = generator.encoder(img1.unsqueeze(0))
+img2 = Image.open('data/giraffe.png')
+img2 = transforms(img2).to(device)
+feature2 = generator.encoder(img2.unsqueeze(0))
+
+features = torch.stack([feature1, feature2], dim=0)
+print(generator.sample(features, vocab))
+
+
+
+caption = generator.generate('data/surf.jpg', vocab, True)
+print(caption)
+caption = generator.generate('data/surf.jpg', vocab, False)
+print(caption)
+caption = generator.generate('data/giraffe.png', vocab, True)
+print(caption)
+caption = generator.generate('data/giraffe.png', vocab, False)
+print(caption)
+
+

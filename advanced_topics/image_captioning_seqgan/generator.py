@@ -1,6 +1,10 @@
+import numpy as np
+import os
+from PIL import Image
 import torch
 import torch.nn as nn
 from torchvision.models import resnet101
+import torchvision.transforms as T
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
@@ -163,7 +167,7 @@ class Decoder(torch.nn.Module):
 
     def generate_beamsearch(self, features, sos_idx, eos_idx, beam_size=3, max_length=30, all_captions=False, device='cuda'):
         '''
-            features: (enc_image_size, enc_image_size, encoder_dim)
+            features: (1, enc_image_size, enc_image_size, encoder_dim)
             sos_idx: index of <sos>
         '''
         # flatten features
@@ -248,6 +252,121 @@ class Decoder(torch.nn.Module):
 
             
 
+
+class Generator(torch.nn.Module):
+    def __init__(self, attention_dim, embedding_size, lstm_size, vocab_size, encoder_dim=2048, fine_tune_encoder=False, encoder_path='data/encoder_params.pkl', decoder_path='data/decoder_params.pkl'):
+        super(Generator, self).__init__()
+
+        # ------------- constants ----------------
+        self.log_every = 10
+        self.save_every = 100
+
+        self.learning_rate = 1e-3
+
+        # ------------- encoder ----------------
+        self.encoder = Encoder()
+        self.encoder.fine_tune(fine_tune_encoder)
+        self.encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.encoder.parameters()), lr=self.learning_rate) if fine_tune_encoder else None
+
+        # ------------- decoder ----------------
+        self.decoder = Decoder(attention_dim, embedding_size, lstm_size, vocab_size)
+        self.decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.decoder.parameters()), lr=self.learning_rate)
+        
+        # ------------- load model ----------------
+        self.encoder_path = encoder_path
+        self.decoder_path = decoder_path
+        if os.path.exists(self.encoder_path):
+            print('Start loading encoder')
+            self.encoder.load_state_dict(torch.load(self.encoder_path))
+        if os.path.exists(self.decoder_path):
+            print('Start loading decoder')
+            self.decoder.load_state_dict(torch.load(self.decoder_path))
+
+        self.loss_fn = torch.nn.CrossEntropyLoss()
+
+    
+    def pre_train(self, dataloader, num_epochs, alpha_c=1.0):
+
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        num_steps = len(dataloader)
+
+        for epoch in range(num_epochs):
+            for index, (imgs, captions, lengths) in enumerate(dataloader):
+                imgs = imgs.to(device)
+                captions = captions.to(device)
+
+                features = self.encoder(imgs)
+                y_predicted, captions, lengths, alphas = self.decoder(features, captions, lengths)
+
+                targets = captions[:, 1:]
+
+                y_predicted, _ = pack_padded_sequence(y_predicted, lengths, batch_first=True)
+                targets, _ = pack_padded_sequence(targets, lengths, batch_first=True)
+
+                loss = self.loss_fn(y_predicted, targets)
+                loss += alpha_c * ((1.0 - alphas.sum(dim=1)) ** 2).mean()
+                
+                #optimizer.zero_grad()
+                if self.encoder_optimizer is not None:
+                    self.encoder_optimizer.zero_grad()
+                self.decoder_optimizer.zero_grad()
+
+
+                loss.backward()
+
+                #optimizer.step()
+                if self.encoder_optimizer is not None:
+                    self.encoder_optimizer.step()
+                self.decoder_optimizer.step()
+
+                if index % self.log_every  == 0:
+                    print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'.format(epoch, num_epochs, index, num_steps, loss.item(), np.exp(loss.item()))) 
+        
+                if index % self.save_every == 0 and index != 0:
+                    print('Start saving encoder')
+                    torch.save(self.encoder.state_dict(), self.encoder_path)
+                    print('Start saving decoder')
+                    torch.save(self.decoder.state_dict(), self.decoder_path)
+
+
+    def generate(self, img_path, vocab, translate_flag=True):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        transforms = T.Compose([
+            T.ToTensor(),
+            T.Normalize((0.485, 0.456, 0.406),
+                        (0.229, 0.224, 0.225))])
+        img = Image.open(img_path)
+        imgs = transforms(img).to(device).unsqueeze(0)
+
+        with torch.no_grad():
+            features = self.encoder(imgs)
+
+        captions = self.sample(features, vocab) # (batch_size, seq_length)
+        caption = captions[0]
+
+        if translate_flag:
+            def translate(indices):
+                sentences = list()
+                for index in indices:
+                    word = vocab.idx2word[int(index)]
+                    if word == '<eos>':
+                        break
+                    sentences.append(word)
+                return ' '.join(sentences)
+            
+            return translate(caption) # string: <sos> a man ... tree . # no <eos>, but contains <sos>
+        else:
+            return caption # list, contains <eos> index
+
+            
+    def sample(self, features, vocab):
+        captions = list()
+        with torch.no_grad(): # Avoid accumulating gradients which might result in out of memory
+            for feature in features:
+                caption = self.decoder.generate_beamsearch(feature.unsqueeze(0), vocab.word2idx['<sos>'], vocab.word2idx['<eos>'], all_captions=False)
+                captions.append(caption)
+        
+        return captions # (batch_size, seq_length)
 
 
 
