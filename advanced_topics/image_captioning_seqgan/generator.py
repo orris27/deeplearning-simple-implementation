@@ -285,19 +285,8 @@ class Generator(torch.nn.Module):
         self.decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.decoder.parameters()), lr=self.learning_rate)
         
         # ------------- load model ----------------
-#        self.encoder_path = encoder_path
-#        self.decoder_path = decoder_path
-#        if os.path.exists(self.encoder_path):
-#            print('Start loading encoder')
-#            self.encoder.load_state_dict(torch.load(self.encoder_path))
-#        if os.path.exists(self.decoder_path):
-#            print('Start loading decoder')
-#            self.decoder.load_state_dict(torch.load(self.decoder_path))
-        
         self.generator_path = generator_path
-
         self.ad_generator_path = ad_generator_path
-
         if not load_ad and os.path.exists(self.generator_path):
             print('Start loading pre_generator')
             self.load_state_dict(torch.load(self.generator_path))
