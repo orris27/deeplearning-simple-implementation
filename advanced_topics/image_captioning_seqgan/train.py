@@ -13,6 +13,7 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from dataloader import get_loader
 from generator import Generator
+from discriminator import Discriminator
 
 image_dir = 'data/resized2014'
 caption_path = 'data/annotations/captions_train2014.json'
@@ -37,11 +38,27 @@ def train():
     dataloader = get_loader(image_dir, caption_path, vocab, 
                             batch_size,
                             crop_size,
-                            shuffle=True, num_workers=num_workers)
+                            shuffle=False, num_workers=num_workers)
 
     generator = Generator(attention_dim, embedding_size, lstm_size, vocab_size)
     generator = generator.to(device)
-    generator.pre_train(dataloader, num_epochs)
+    generator = generator.train()
+
+    discriminator = Discriminator(vocab_size, embedding_size, lstm_size, attention_dim)
+    discriminator = discriminator.to(device)
+    discriminator = discriminator.train()
+
+    for i in range(5):
+        generator.pre_train(dataloader, 1, vocab)
+        discriminator.pre_train(generator, dataloader, 1, vocab)
+
+
+#    for i in range(5):
+#        print("D")
+#        discriminator.pre_train(generator, dataloader, 1, vocab, num_batches=100)
+#        print("G")
+#        generator.ad_train(dataloader, discriminator, vocab, 1, num_batches=20, alpha_c=1.0)
+
     
 train()
 

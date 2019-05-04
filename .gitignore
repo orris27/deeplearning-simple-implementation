@@ -1,3 +1,4 @@
+*.bak
 resized2014
 *.ckpt
 *.pkl

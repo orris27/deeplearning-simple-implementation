@@ -44,7 +44,7 @@ dataloader = get_loader(image_dir, caption_path, vocab,
                         shuffle=True, num_workers=num_workers)
 
    
-generator = Generator(attention_dim, embedding_size, lstm_size, vocab_size)
+generator = Generator(attention_dim, embedding_size, lstm_size, vocab_size, load_ad=False)
 generator = generator.to(device)
 generator = generator.eval()
 
@@ -66,14 +66,11 @@ features = torch.stack([feature1, feature2], dim=0)
 print(generator.sample(features, vocab))
 
 
-
-caption = generator.generate('data/surf.jpg', vocab, True)
-print(caption)
-caption = generator.generate('data/surf.jpg', vocab, False)
-print(caption)
-caption = generator.generate('data/giraffe.png', vocab, True)
-print(caption)
-caption = generator.generate('data/giraffe.png', vocab, False)
-print(caption)
+fullnames = ['data/giraffe.png', 'data/surf.jpg', 'data/bedroom.jpg']
+for fullname in fullnames:
+    caption = generator.generate(fullname, vocab, True)
+    print(caption)
+    caption = generator.generate(fullname, vocab, False)
+    print(caption)
 
 
