@@ -168,10 +168,11 @@ class Decoder(torch.nn.Module):
 
         return captions
 
-    def generate_beamsearch(self, features, sos_idx, eos_idx, beam_size=3, max_length=30, all_captions=False, device='cuda'):
+    def generate_beamsearch(self, features, sos_idx, eos_idx, beam_size=20, max_length=30, all_captions=False, device='cuda'):
         '''
             features: (1, enc_image_size, enc_image_size, encoder_dim)
             sos_idx: index of <sos>
+            beam_size: 20 based on the paper "Show and Tell: A Neural Image Caption Generator"
         '''
         max_length -= 1 # adjust
         # flatten features
@@ -264,25 +265,26 @@ class Decoder(torch.nn.Module):
 
 
 class Generator(torch.nn.Module):
-    def __init__(self, attention_dim, embedding_size, lstm_size, vocab_size, encoder_dim=2048, fine_tune_encoder=False, generator_path = 'data/generator_params.pkl', ad_generator_path='data/ad_generator_params.pkl', load_ad=False):
+    def __init__(self, attention_dim, embedding_size, lstm_size, vocab_size, encoder_dim=2048, generator_path = 'data/generator_params.pkl', ad_generator_path='data/ad_generator_params.pkl', load_ad=False):
         super(Generator, self).__init__()
 
         # ------------- constants ----------------
         self.log_every = 10
-        self.save_every = 100
+        self.save_every = 500
         self.save_every_ad = 20
-
         self.learning_rate = 1e-3
+        self.learning_rate_ad = 1e-4
         self.vocab_size = vocab_size
 
         # ------------- encoder ----------------
+        fine_tune_encoder = False
         self.encoder = Encoder()
         self.encoder.fine_tune(fine_tune_encoder)
-        self.encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.encoder.parameters()), lr=self.learning_rate) if fine_tune_encoder else None
+        #self.encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.encoder.parameters()), lr=self.learning_rate) if fine_tune_encoder else None
 
         # ------------- decoder ----------------
         self.decoder = Decoder(attention_dim, embedding_size, lstm_size, vocab_size)
-        self.decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.decoder.parameters()), lr=self.learning_rate)
+        #self.decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.decoder.parameters()), lr=self.learning_rate)
         
         # ------------- load model ----------------
         self.generator_path = generator_path
@@ -295,12 +297,12 @@ class Generator(torch.nn.Module):
             self.load_state_dict(torch.load(self.ad_generator_path))
 
         self.loss_fn = torch.nn.CrossEntropyLoss()
-        self.learning_rate = 1e-4
-        self.optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.parameters()), lr=self.learning_rate)
-
-        
+        self.optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, self.parameters()), lr=self.learning_rate_ad)
     
     def pre_train(self, dataloader, num_epochs, vocab, alpha_c=1.0):
+        '''
+            Pre-train discriminator based on data_loader
+        '''
 
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         num_steps = len(dataloader)
@@ -321,18 +323,17 @@ class Generator(torch.nn.Module):
                 loss = self.loss_fn(y_predicted, targets)
                 loss += alpha_c * ((1.0 - alphas.sum(dim=1)) ** 2).mean()
                 
-                #optimizer.zero_grad()
-                if self.encoder_optimizer is not None:
-                    self.encoder_optimizer.zero_grad()
-                self.decoder_optimizer.zero_grad()
+#                if self.encoder_optimizer is not None:
+#                    self.encoder_optimizer.zero_grad()
+#                self.decoder_optimizer.zero_grad()
 
-
+                self.optimizer.zero_grad()
                 loss.backward()
+                self.optimizer.step()
 
-                #optimizer.step()
-                if self.encoder_optimizer is not None:
-                    self.encoder_optimizer.step()
-                self.decoder_optimizer.step()
+#                if self.encoder_optimizer is not None:
+#                    self.encoder_optimizer.step()
+#                self.decoder_optimizer.step()
 
                 if index % self.log_every  == 0:
                     print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f}'.format(epoch, num_epochs, index, num_steps, loss.item(), np.exp(loss.item()))) 
@@ -352,6 +353,11 @@ class Generator(torch.nn.Module):
  
 
     def generate(self, img_path, vocab, translate_flag=True):
+        '''
+            Generate captions from image path.
+            img_path: string. Fullname of the path of the image
+        '''
+        # ---------------------- Preprocess images -------------------------------
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         transforms = T.Compose([
             T.ToTensor(),
@@ -363,6 +369,7 @@ class Generator(torch.nn.Module):
         with torch.no_grad():
             features = self.encoder(imgs)
 
+        # ---------------------- Generate captions from image features -------------------------------
         captions = self.sample(features, vocab) # (batch_size, seq_length)
         caption = captions[0]
 
@@ -463,15 +470,6 @@ class Generator(torch.nn.Module):
                 self.optimizer.zero_grad()
                 ad_loss.backward()
                 self.optimizer.step()
-
-
-#                if self.encoder_optimizer is not None:
-#                    self.encoder_optimizer.zero_grad()
-#                self.decoder_optimizer.zero_grad()
-#                ad_loss.backward()
-#                if self.encoder_optimizer is not None:
-#                    self.encoder_optimizer.step()
-#                self.decoder_optimizer.step()
 
                 if i % self.log_every  == 0:
                     print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Perplexity: {:5.4f} ---ad'.format(epoch, num_epochs, i, num_steps, ad_loss.item(), np.exp(ad_loss.item()))) 
