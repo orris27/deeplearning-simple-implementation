@@ -13,19 +13,9 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from dataloader import get_loader
 from generator import Generator
+from discriminator import Discriminator
+from settings import *
 
-image_dir = 'data/resized2014'
-caption_path = 'data/annotations/captions_train2014.json'
-batch_size = 32
-vocab_path = 'data/vocab.pkl'
-num_workers = 2
-crop_size = 224
-embedding_size = 256
-lstm_size = 512
-num_epochs = 100
-attention_dim = 512
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def train():
     with open(vocab_path, 'rb') as f:
@@ -41,7 +31,25 @@ def train():
 
     generator = Generator(attention_dim, embedding_size, lstm_size, vocab_size)
     generator = generator.to(device)
-    generator.pre_train(dataloader, num_epochs)
+    generator = generator.train()
+
+    discriminator = Discriminator(vocab_size, embedding_size, lstm_size, attention_dim)
+    discriminator = discriminator.to(device)
+    discriminator = discriminator.train()
+
+
+
+    for i in range(5):
+        discriminator.pre_train(generator, dataloader, 1, vocab)
+        generator.pre_train(dataloader, 1, vocab)
+
+
+#    for i in range(5):
+#        print("D")
+#        discriminator.pre_train(generator, dataloader, 1, vocab, num_batches=100)
+#        print("G")
+#        generator.ad_train(dataloader, discriminator, vocab, 1, num_batches=20, alpha_c=1.0)
+
     
 train()
 
