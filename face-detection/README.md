@@ -5,7 +5,7 @@
 curl -X POST "https://api-cn.faceplusplus.com/facepp/v3/detect" -F "api_key=<api_key>"  -F "api_secret=<api_secret>"  -F "image_url=https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1564113226&di=57d37113aca7d923605b5a30944ebc93&imgtype=jpg&er=1&src=http%3A%2F%2Fww2.sinaimg.cn%2Forj480%2Fa721d309gw1f8ui6bg1f9j20n50yqgpq.jpg" -F "return_landmark=0"  -F "return_attributes=smiling" | python -mjson.tool
 
 # Another choice is to send binary data with POST multipart/form-data
-#curl -X POST "https://api-cn.faceplusplus.com/facepp/v3/detect" -F "api_key=gac5FSQOyeku7rk9piIamwi_vEWemWxU"  -F "api_secret=oaGMABhQwIyrpPRa_SUNqwUUWIV3C2E7"  -F "image_file=@/tmp/1.jpeg" -F "return_landmark=0"  -F "return_attributes=smiling" | python -mjson.tool
+#curl -X POST "https://api-cn.faceplusplus.com/facepp/v3/detect" -F "api_key=<api_key>"  -F "api_secret=<api_secret>"  -F "image_file=@/tmp/1.jpeg" -F "return_landmark=0"  -F "return_attributes=smiling" | python -mjson.tool
 
 
 # Outputs
