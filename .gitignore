@@ -1,3 +1,5 @@
+data/ptb/
+MNIST_data/
 valresized2014
 *.bak
 resized2014
