@@ -16,7 +16,7 @@ rm -rf 1_move_files.py 2_extract_files.py data_file.csv ucfTrainTestlist/
 cd datasets/
 unzip UCF101_videos.zip
 ```
-2. Convert from avi to jpg files using ```utils/video_jpg_ucf101_hmdb51.py```
+2. Convert from avi to jpg files using ```utils/video_jpg_ucf101_hmdb51.py``` (Note that we do not need to split UCF101 to train/test, because `ucf101_0x.json` provides information for training or validation status)
 ```bash
 python utils/video_jpg_ucf101_hmdb51.py datasets/UCF101 datasets/UCF101_jpg
 ```
@@ -30,4 +30,25 @@ python utils/n_frames_ucf101_hmdb51.py datasets/UCF101_jpg
   * ```annotation_dir_path``` includes classInd.txt, trainlist0{1, 2, 3}.txt, testlist0{1, 2, 3}.txt
 ```bash
 python utils/ucf101_json.py annotation_UCF101
+sed -i "s/v_HandStandPushups/v_HandstandPushups/g" annotation_UCF101/*
+```
+5. Run the model
+```bash
+python main.py --root_path ./ \
+	--video_path datasets/UCF101_jpg \
+	--annotation_path annotation_UCF101/ucf101_01.json \ # 01 version
+	--result_path results \
+	--dataset ucf101 \
+	--n_classes 101 \
+	--model mobilenet \
+	--width_mult 0.5 \
+	--train_crop random \
+	--learning_rate 0.1 \
+	--sample_duration 16 \
+	--downsample 2 \
+	--batch_size 64 \
+	--n_threads 16 \
+	--checkpoint 1 \
+	--n_val_samples 1 \
+
 ```
