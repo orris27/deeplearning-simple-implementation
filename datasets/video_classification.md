@@ -1,5 +1,5 @@
 ## 1. UCF101
-2. We can get the train/test split with the following script. Note that in `1_move_files.py`, the default split strategy is `01` version.
+We can get the train/test split with the following script. Note that in `1_move_files.py`, the default split strategy is `01` version.
 ```
 unzip UCF101_videos.zip 
 cd UCF101
@@ -26,7 +26,7 @@ python utils/video_jpg_ucf101_hmdb51.py datasets/UCF101 datasets/UCF101_jpg
 python utils/n_frames_ucf101_hmdb51.py datasets/UCF101_jpg
 ```
 
-3. Generate annotation file in json format similar to ActivityNet using ```utils/ucf101_json.py```
+4. Generate annotation file in json format similar to ActivityNet using ```utils/ucf101_json.py```
   * ```annotation_dir_path``` includes classInd.txt, trainlist0{1, 2, 3}.txt, testlist0{1, 2, 3}.txt
 ```bash
 python utils/ucf101_json.py annotation_UCF101
