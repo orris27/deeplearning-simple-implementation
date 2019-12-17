@@ -31,10 +31,10 @@ python utils/n_frames_ucf101_hmdb51.py datasets/UCF101_jpg/test
 python utils/ucf101_json.py annotation_UCF101
 sed -i "s/v_HandStandPushups/v_HandstandPushups/g" annotation_UCF101/*
 ```
-5. Run the model
+5. Merge train/test split into one big folder (in my case, it is `UCF101_jpg`. Remember to delete `{train/test}` empty folder). Then run the model
 ```bash
 python main.py --root_path ./ \
-	--video_path datasets/UCF101_jpg/train \
+	--video_path datasets/UCF101_jpg/ \
 	--annotation_path annotation_UCF101/ucf101_01.json \
 	--result_path results \
 	--dataset ucf101 \
