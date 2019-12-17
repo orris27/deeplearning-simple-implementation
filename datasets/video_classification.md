@@ -11,19 +11,18 @@ python 1_move_files.py
 rm -rf 1_move_files.py 2_extract_files.py data_file.csv ucfTrainTestlist/
 ```
 ### How to run [Efficient-3DCNNs](https://github.com/okankop/Efficient-3DCNNs/)
-1. Download videos [here](http://crcv.ucf.edu/data/UCF101.php). For example, we can download the videos into `datasets/`
-```bash
-cd datasets/
-unzip UCF101_videos.zip
-```
+1. Download videos [here](http://crcv.ucf.edu/data/UCF101.php). Suppose we get train/test split in the `datasets/UCF101/{train,test}`
 2. Convert from avi to jpg files using ```utils/video_jpg_ucf101_hmdb51.py``` (Note that we do not need to split UCF101 to train/test, because `ucf101_0x.json` provides information for training or validation status)
 ```bash
-python utils/video_jpg_ucf101_hmdb51.py datasets/UCF101 datasets/UCF101_jpg
+mkdir -p datasets/UCF101_jpg/{train, test}
+python utils/video_jpg_ucf101_hmdb51.py datasets/UCF101/train datasets/UCF101_jpg/train
+python utils/video_jpg_ucf101_hmdb51.py datasets/UCF101/test datasets/UCF101_jpg/test
 ```
 
 3. Generate n_frames files using ```utils/n_frames_ucf101_hmdb51.py```
 ```bash
-python utils/n_frames_ucf101_hmdb51.py datasets/UCF101_jpg
+python utils/n_frames_ucf101_hmdb51.py datasets/UCF101_jpg/train
+python utils/n_frames_ucf101_hmdb51.py datasets/UCF101_jpg/test
 ```
 
 4. Generate annotation file in json format similar to ActivityNet using ```utils/ucf101_json.py```
@@ -35,8 +34,8 @@ sed -i "s/v_HandStandPushups/v_HandstandPushups/g" annotation_UCF101/*
 5. Run the model
 ```bash
 python main.py --root_path ./ \
-	--video_path datasets/UCF101_jpg \
-	--annotation_path annotation_UCF101/ucf101_01.json \ # 01 version
+	--video_path datasets/UCF101_jpg/train \
+	--annotation_path annotation_UCF101/ucf101_01.json \
 	--result_path results \
 	--dataset ucf101 \
 	--n_classes 101 \
