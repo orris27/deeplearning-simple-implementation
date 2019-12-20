@@ -1,7 +1,7 @@
 OpenCV can be used to train machine learning algorithm on C++.
 
 OpenCV2 code:
-```
+```cpp
 Mat X_train(train_size, num_features, CV_32F, X_train_f);
 Mat y_train(train_size, 1, CV_32F, y_train_f);
 
@@ -54,7 +54,7 @@ y_true = y_test_f[i];
 ```
 
 Both codes share the same header:
-```
+```cpp
 #include <cmath>
 #include <fstream>
 #include <iostream>
