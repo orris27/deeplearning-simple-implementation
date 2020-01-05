@@ -14,7 +14,7 @@ rm -rf 1_move_files.py 2_extract_files.py data_file.csv ucfTrainTestlist/
 1. Download videos [here](http://crcv.ucf.edu/data/UCF101.php). Suppose we get train/test split in the `datasets/UCF101/{train,test}`
 2. Convert from avi to jpg files using ```utils/video_jpg_ucf101_hmdb51.py``` (Note that we do not need to split UCF101 to train/test, because `ucf101_0x.json` provides information for training or validation status)
 ```bash
-mkdir -p datasets/UCF101_jpg/{train, test}
+mkdir -p datasets/UCF101_jpg/{train,test}
 python utils/video_jpg_ucf101_hmdb51.py datasets/UCF101/train datasets/UCF101_jpg/train
 python utils/video_jpg_ucf101_hmdb51.py datasets/UCF101/test datasets/UCF101_jpg/test
 ```
